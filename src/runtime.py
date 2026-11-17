@@ -1,6 +1,6 @@
 from __future__ import annotations
 from model import HubbardModel
-from monte_carlo import MonteCarlo
+from monte_carlo import MonteCarloDeterminant
 import numpy as np
 import scipy.linalg
 """
@@ -20,9 +20,10 @@ class Runtime:
         self.beta = beta
 
         self.X = self.initialize_auxiliary_field()
-        self.MC = MonteCarlo(M, beta, self.X, model)
+        self.MC = MonteCarloDeterminant(M, beta, self.X, model)
 
-        self.densitys = [self.density()]
+        self.densitys = []
+        self.double_occupancies = []
         self.dim = self.M * self.N
 
 
@@ -34,7 +35,9 @@ class Runtime:
             self.sweep()
         for _ in range(measure):
             self.sweep()
-            self.densitys.append(self.density())
+            density, double_occupancy = self.observable()
+            self.densitys.append(density)
+            self.double_occupancies.append(double_occupancy)
 
     def sweep(self):
         """
@@ -46,14 +49,17 @@ class Runtime:
         for _ in range(self.dim):
             self.MC.flip()
 
-    def density(self):
+    def observable(self):
         """
         Calculate the density of the current configuration of the auxiliary field X.
         """
         G_up, G_down = self.green_function()
         n_up = 1 - np.diag(G_up)
         n_down = 1 - np.diag(G_down)
-        return np.mean(n_up + n_down)
+
+        density = np.mean(n_up + n_down)
+        double_occupancy = np.mean(n_up * n_down)
+        return density, double_occupancy
 
     def green_function(self):
         """
