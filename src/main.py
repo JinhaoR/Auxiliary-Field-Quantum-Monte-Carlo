@@ -5,9 +5,9 @@ from matplotlib import pyplot as plt
 
 L=8
 t=1.0
-U=4.0
-beta=10.0
-M=100
+U=0.0
+beta=4.0
+M=int(beta * 10)
 HubbardModel = HubbardModel(L=L, t=t, U=U)
 
 thermalization = 1000
